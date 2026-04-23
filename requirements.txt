@@ -1,0 +1,7 @@
+# Pinned package versions used for the analysis reported in the manuscript.
+# Tested with Python 3.13.
+numpy==2.2.*
+Pillow==11.1.*
+scipy==1.15.*
+pandas==2.2.*
+scikit-learn==1.5.*

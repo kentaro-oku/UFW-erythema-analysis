@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+title: "UFW-erythema-analysis: Semi-quantitative image-analysis pipeline for post-laser erythema quantification"
+message: "If you use this software, please cite both the software and the associated manuscript."
+type: software
+authors:
+  - family-names: "Oku"
+    given-names: "Kentaro"
+    affiliation: "Hills Grace Clinic, Yokohama, Japan"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+version: 1.0.0
+date-released: 2026-XX-XX
+license: MIT
+repository-code: "https://github.com/kentaro-oku/UFW-erythema-analysis"
+url: "https://github.com/kentaro-oku/UFW-erythema-analysis"
+# doi: "10.5281/zenodo.XXXXXXX"
+keywords:
+  - "post-laser erythema"
+  - "hemoglobin-enhanced imaging"
+  - "image analysis"
+  - "ultrafine water clusters"
+  - "split-face study"
+  - "dermatology"
+  - "reproducibility"
+preferred-citation:
+  type: article
+  title: "Efficacy of Nano-Sized Ultrafine Water Clusters in Reducing Erythema Following Fractionated Picosecond Alexandrite Laser Treatment: A Split-Face, Randomized, Evaluator-Blinded Pilot Study"
+  authors:
+    - family-names: "Oku"
+      given-names: "Kentaro"
+      affiliation: "Hills Grace Clinic, Yokohama, Japan"
+  journal: "Lasers in Medical Science"
+  year: 2026
+  # volume: ""
+  # issue: ""
+  # start: ""
+  # end: ""
+  # doi: ""
