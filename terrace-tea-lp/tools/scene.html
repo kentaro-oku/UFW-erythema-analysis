@@ -1,0 +1,147 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const W = 1920, H = 1080, FRAMES = 120;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+// --- backdrop: warm terrace dusk gradient
+function gradTex() {
+  const c = document.createElement('canvas'); c.width = 16; c.height = 512;
+  const g = c.getContext('2d'); const gr = g.createLinearGradient(0, 0, 0, 512);
+  gr.addColorStop(0, '#1d2a22'); gr.addColorStop(0.55, '#3a4a33'); gr.addColorStop(0.8, '#c9a46a'); gr.addColorStop(1, '#f1dcb0');
+  g.fillStyle = gr; g.fillRect(0, 0, 16, 512);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+scene.background = new THREE.Color('#15231b'); scene.fog = new THREE.Fog('#15231b', 9, 26);
+const sky = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 16), new THREE.MeshBasicMaterial({ map: gradTex(), side: THREE.BackSide }));
+sky.rotation.x = Math.PI; scene.add(sky);
+
+// --- wooden terrace deck
+function woodTex() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 1024; const g = c.getContext('2d');
+  for (let i = 0; i < 8; i++) {
+    const y = i * 128; const base = 120 + (i * 37) % 30;
+    g.fillStyle = `rgb(${base + 40},${base - 10},${base - 55})`; g.fillRect(0, y, 1024, 124);
+    for (let k = 0; k < 90; k++) {
+      g.strokeStyle = `rgba(60,30,10,${0.05 + ((k * 13) % 7) / 60})`; g.lineWidth = 1 + (k % 3);
+      g.beginPath(); const yy = y + ((k * 29) % 124);
+      g.moveTo(0, yy); for (let x = 0; x <= 1024; x += 64) g.lineTo(x, yy + Math.sin(x / 90 + k) * 3); g.stroke();
+    }
+    g.fillStyle = 'rgba(20,10,5,0.8)'; g.fillRect(0, y + 124, 1024, 4);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); t.anisotropy = 8; return t;
+}
+const deck = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ map: woodTex(), color: '#9a8470', roughness: 0.7 }));
+deck.rotation.x = -Math.PI / 2; deck.receiveShadow = true; scene.add(deck);
+
+// --- lights: low golden sun + fill
+const sun = new THREE.DirectionalLight('#ffd49a', 3.2); sun.position.set(-6, 5, 4); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); sun.shadow.camera.left = -4; sun.shadow.camera.right = 4; sun.shadow.camera.top = 4; sun.shadow.camera.bottom = -4; sun.shadow.bias = -0.0005;
+scene.add(sun);
+const back = new THREE.PointLight('#ffb347', 30, 12, 2); back.position.set(0.6, 1.6, -2.2); scene.add(back);
+const rim = new THREE.DirectionalLight('#9fd3b0', 1.4); rim.position.set(5, 3, -5); scene.add(rim);
+scene.add(new THREE.HemisphereLight('#f6e7c8', '#2a1c10', 0.5));
+
+// --- bottle (lathe profile)
+const bottle = new THREE.Group(); scene.add(bottle);
+const prof = [[0, 0], [0.62, 0], [0.66, 0.04], [0.68, 0.15], [0.68, 1.9], [0.64, 2.1], [0.45, 2.45], [0.26, 2.75], [0.24, 3.05], [0.26, 3.08], [0.26, 3.12]]
+  .map(([x, y]) => new THREE.Vector2(x, y));
+const glass = new THREE.Mesh(new THREE.LatheGeometry(prof, 96), new THREE.MeshPhysicalMaterial({
+  color: '#ffffff', metalness: 0, roughness: 0.05, transmission: 1, thickness: 0.35, ior: 1.5, transparent: true, opacity: 1,
+  clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.3
+}));
+glass.castShadow = true; bottle.add(glass);
+const liqProf = [[0, 0.06], [0.6, 0.06], [0.63, 0.16], [0.63, 1.88], [0.59, 2.07], [0.44, 2.3], [0, 2.3]].map(([x, y]) => new THREE.Vector2(x, y));
+const liquid = new THREE.Mesh(new THREE.LatheGeometry(liqProf, 96), new THREE.MeshPhysicalMaterial({
+  color: '#9a520a', roughness: 0.1, clearcoat: 0.8, emissive: '#6a3000', emissiveIntensity: 0.3
+}));
+bottle.add(liquid);
+// cap
+const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.29, 0.34, 64), new THREE.MeshStandardMaterial({ color: '#2f4a36', metalness: 0.6, roughness: 0.35 }));
+cap.position.y = 3.27; cap.castShadow = true; bottle.add(cap);
+const capTop = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.03, 64), new THREE.MeshStandardMaterial({ color: '#c8a35a', metalness: 0.9, roughness: 0.25 }));
+capTop.position.y = 3.45; bottle.add(capTop);
+
+// label
+function labelTex() {
+  const c = document.createElement('canvas'); c.width = 2048; c.height = 700; const g = c.getContext('2d');
+  g.fillStyle = '#f3ead6'; g.fillRect(0, 0, 2048, 700);
+  g.fillStyle = '#2f4a36'; g.fillRect(0, 0, 2048, 36); g.fillRect(0, 664, 2048, 36);
+  g.strokeStyle = '#c8a35a'; g.lineWidth = 4; g.strokeRect(20, 56, 2008, 588);
+  // front panel centred at u=0.25 (lathe front faces +z at angle offset) -> draw twice for wrap
+  { const cx = 1024; g.textAlign = 'center'; g.fillStyle = '#2f4a36';
+    g.save(); g.translate(cx, 112); g.fillStyle = '#5f8a4e'; g.beginPath(); g.ellipse(-14, 0, 30, 12, -0.5, 0, Math.PI * 2); g.fill(); g.fillStyle = '#a5762c'; g.beginPath(); g.ellipse(16, 4, 26, 10, 0.5, 0, Math.PI * 2); g.fill(); g.restore();
+    g.fillStyle = '#2f4a36'; g.font = '600 34px Georgia, serif'; g.fillText('— EST. 2026 —', cx, 186);
+    g.font = '700 112px Georgia, serif'; g.fillText('TERRACE', cx, 330);
+    g.font = 'italic 400 104px Georgia, serif'; g.fillStyle = '#a5762c'; g.fillText('Tea', cx, 448);
+    g.font = '500 30px Georgia, serif'; g.fillStyle = '#2f4a36'; g.fillText('SUN-ROASTED HOJICHA', cx, 540);
+    g.font = '400 28px Georgia, serif'; g.fillText('500 ml', cx, 600); }
+  for (const cx of [0, 2048]) { g.textAlign = 'center'; g.fillStyle = '#2f4a36';
+    g.font = '600 30px Georgia, serif'; g.fillText('SINGLE ORIGIN · SHIZUOKA', cx, 300);
+    g.font = '400 26px Georgia, serif'; g.fillText('no sugar · no additives', cx, 360); g.fillText('roasted on the terrace', cx, 410); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+const label = new THREE.Mesh(new THREE.CylinderGeometry(0.69, 0.69, 1.05, 128, 1, true), new THREE.MeshStandardMaterial({ map: labelTex(), roughness: 0.6 }));
+label.position.y = 1.0; label.rotation.y = Math.PI; bottle.add(label);
+
+// --- glass cup with tea + tea leaves on deck
+const cupProf = [[0, 0], [0.42, 0], [0.45, 0.05], [0.52, 0.85], [0.53, 0.88]].map(([x, y]) => new THREE.Vector2(x, y));
+const cup = new THREE.Mesh(new THREE.LatheGeometry(cupProf, 64), glass.material);
+cup.position.set(1.55, 0, 0.6); scene.add(cup);
+const cupTea = new THREE.Mesh(new THREE.CylinderGeometry(0.47, 0.42, 0.55, 64), liquid.material);
+cupTea.position.set(1.55, 0.33, 0.6); scene.add(cupTea);
+
+const leafShape = new THREE.Shape(); leafShape.moveTo(0, -0.12); leafShape.quadraticCurveTo(0.07, 0, 0, 0.12); leafShape.quadraticCurveTo(-0.07, 0, 0, -0.12);
+const leafGeo = new THREE.ShapeGeometry(leafShape, 8);
+const leafMats = ['#4f7a3a', '#6d9449', '#3d5f2c', '#8a6a2e'].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, side: THREE.DoubleSide }));
+const leaves = [];
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+for (let i = 0; i < 70; i++) {
+  const m = new THREE.Mesh(leafGeo, leafMats[i % 4]); m.castShadow = true;
+  const a = rnd() * Math.PI * 2, r = 1.1 + rnd() * 2.2, h = 0.4 + rnd() * 3.4;
+  m.userData = { a, r, h, s: 0.6 + rnd() * 0.9, rx: rnd() * 6, ry: rnd() * 6, sp: 0.5 + rnd() };
+  m.scale.setScalar(m.userData.s); scene.add(m); leaves.push(m);
+}
+
+const camera = new THREE.PerspectiveCamera(32, W / H, 0.1, 200);
+const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+window.renderFrame = (i) => {
+  const t = i / (FRAMES - 1), e = ease(t);
+  // camera: start high, close on cap -> sweep down and around to a heroic 3/4 view
+  const ang = THREE.MathUtils.lerp(-1.25, 0.32, e);
+  const rad = THREE.MathUtils.lerp(4.2, 8.4, e);
+  const y = THREE.MathUtils.lerp(5.6, 2.3, e);
+  camera.position.set(Math.sin(ang) * rad, y, Math.cos(ang) * rad);
+  camera.lookAt(0.25 * e, THREE.MathUtils.lerp(2.9, 1.65, e), 0);
+  bottle.rotation.y = THREE.MathUtils.lerp(-2.6, ang, e);
+  // leaves swirl, then settle in a loose ring around the bottle
+  for (const m of leaves) {
+    const d = m.userData; const fall = Math.min(1, t * d.sp * 1.4);
+    const a = d.a + (1 - fall) * 3.2;
+    m.position.set(Math.cos(a) * d.r, THREE.MathUtils.lerp(d.h, 0.02 + (d.s * 0.01), ease(fall)), Math.sin(a) * d.r);
+    const flat = ease(fall);
+    m.rotation.set(THREE.MathUtils.lerp(d.rx, -Math.PI / 2, flat), d.ry + (1 - flat) * 4, 0);
+  }
+  sun.position.set(-6 + e * 1.5, 5 - e * 1.2, 4);
+  renderer.render(scene, camera);
+  return true;
+};
+window.ready = true;
+</script></body></html>
