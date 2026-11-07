@@ -1,0 +1,155 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// STEP 2 spec: 4s / 1080p / 24fps  -> 96 frames
+const W = 1920, H = 1080, FRAMES = 96;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
+const BG = '#e4d6c3';
+scene.background = new THREE.Color(BG);
+scene.fog = new THREE.Fog(BG, 13, 27);
+
+// soft champagne backdrop
+function gradTex() {
+  const c = document.createElement('canvas'); c.width = 16; c.height = 512; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 512);
+  gr.addColorStop(0, '#f7f2ea'); gr.addColorStop(0.5, '#efe6d8'); gr.addColorStop(1, '#d9c8b0');
+  g.fillStyle = gr; g.fillRect(0, 0, 16, 512);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const sky = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 16), new THREE.MeshBasicMaterial({ map: gradTex(), side: THREE.BackSide, fog: false }));
+// sky removed: solid background + fog gives a seamless horizon
+
+// travertine-like texture
+function stoneTex(seedBase) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 1024; const g = c.getContext('2d');
+  g.fillStyle = '#d9c7ae'; g.fillRect(0, 0, 1024, 1024);
+  let s = seedBase; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 260; i++) {
+    const y = r() * 1024, len = 80 + r() * 400, x = r() * 1024;
+    g.strokeStyle = `rgba(${150 + r() * 40},${125 + r() * 30},${95 + r() * 30},${0.05 + r() * 0.12})`;
+    g.lineWidth = 1 + r() * 3; g.beginPath(); g.moveTo(x, y); g.lineTo(x + len, y + (r() - 0.5) * 6); g.stroke();
+  }
+  for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(120,95,70,${r() * 0.12})`; g.fillRect(r() * 1024, r() * 1024, 1 + r() * 3, 1); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+const floorTex = stoneTex(11); floorTex.repeat.set(4, 4);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.85 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+// lights
+const key = new THREE.DirectionalLight('#fff0dc', 3.4); key.position.set(-5, 7, 5); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6 }); key.shadow.bias = -0.0004; key.shadow.radius = 3;
+scene.add(key);
+const rim = new THREE.DirectionalLight('#ffe2c0', 1.6); rim.position.set(6, 4, -6); scene.add(rim);
+scene.add(new THREE.HemisphereLight('#fffaf2', '#9c8468', 0.45));
+
+// materials
+const frosted = new THREE.MeshPhysicalMaterial({ color: '#fbf8f3', roughness: 0.38, transmission: 0.82, thickness: 0.6, ior: 1.5, clearcoat: 0.6, clearcoatRoughness: 0.25 });
+const gold = new THREE.MeshStandardMaterial({ color: '#c9a66b', metalness: 1, roughness: 0.22 });
+const ivory = new THREE.MeshStandardMaterial({ color: '#f6f1ea', roughness: 0.45 });
+const stoneMat = new THREE.MeshStandardMaterial({ map: stoneTex(29), roughness: 0.8 });
+
+function labelTex(name, sub, vol) {
+  const c = document.createElement('canvas'); c.width = 2048; c.height = 1024; const g = c.getContext('2d');
+  g.fillStyle = '#f8f4ee'; g.fillRect(0, 0, 2048, 1024);
+  const cx = 1024; g.textAlign = 'center'; g.fillStyle = '#5b4a3a';
+  g.fillStyle = '#3f3226'; g.font = '500 210px Georgia, serif'; g.fillText('TERASTIE', cx, 450);
+  g.fillStyle = '#b08d57'; g.fillRect(cx - 160, 500, 320, 5);
+  g.fillStyle = '#3f3226'; g.font = '400 92px Georgia, serif'; g.fillText(name, cx, 640);
+  g.font = 'italic 400 64px Georgia, serif'; g.fillStyle = '#7a6550'; g.fillText(sub, cx, 740);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+const labelMat = (n, s, v) => new THREE.MeshStandardMaterial({ map: labelTex(n, s, v), roughness: 0.55 });
+
+const products = new THREE.Group(); scene.add(products);
+function plinth(r, h, x, z) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 96), stoneMat); m.position.set(x, h / 2, z);
+  m.castShadow = m.receiveShadow = true; products.add(m); return h;
+}
+
+// 1) Tone-up essence (lotion bottle) — left, tall plinth
+const essence = new THREE.Group();
+{
+  const prof = [[0, 0], [0.5, 0], [0.54, 0.05], [0.55, 0.2], [0.55, 2.0], [0.5, 2.18], [0.3, 2.32], [0.2, 2.36], [0.2, 2.5]].map(([x, y]) => new THREE.Vector2(x, y));
+  const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 96), frosted); body.castShadow = true; essence.add(body);
+  const lab = new THREE.Mesh(new THREE.CylinderGeometry(0.558, 0.558, 1.2, 128, 1, true, -Math.PI * 0.42, Math.PI * 0.84), labelMat('TONE-UP ESSENCE', 'lotion', '120 mL'));
+  lab.position.y = 1.05; essence.add(lab);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.62, 64), gold); cap.position.y = 2.72; cap.castShadow = true; essence.add(cap);
+}
+const h1 = plinth(1.0, 1.1, -2.5, 0.3); essence.position.set(-2.5, h1, 0.3); products.add(essence);
+
+// 2) Regen serum (dropper) — centre, highest plinth
+const serum = new THREE.Group();
+{
+  const prof = [[0, 0], [0.46, 0], [0.5, 0.05], [0.5, 1.45], [0.44, 1.62], [0.2, 1.75], [0.18, 1.85]].map(([x, y]) => new THREE.Vector2(x, y));
+  const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 96), frosted); body.castShadow = true; serum.add(body);
+  const lab = new THREE.Mesh(new THREE.CylinderGeometry(0.508, 0.508, 0.95, 128, 1, true, -Math.PI * 0.42, Math.PI * 0.84), labelMat('REGEN SERUM', 'serum', '30 mL'));
+  lab.position.y = 0.72; serum.add(lab);
+  const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.42, 64), gold); collar.position.y = 2.02; collar.castShadow = true; serum.add(collar);
+  const bulbProf = [[0, 0], [0.2, 0], [0.21, 0.1], [0.19, 0.45], [0.15, 0.62], [0.08, 0.7], [0, 0.72]].map(([x, y]) => new THREE.Vector2(x, y));
+  const bulb = new THREE.Mesh(new THREE.LatheGeometry(bulbProf, 64), ivory); bulb.position.y = 2.23; bulb.castShadow = true; serum.add(bulb);
+}
+const h2 = plinth(1.05, 1.6, 0, -0.4); serum.position.set(0, h2, -0.4); products.add(serum);
+
+// 3) Rich cream (jar) — right, low plinth
+const cream = new THREE.Group();
+{
+  const prof = [[0, 0], [0.78, 0], [0.84, 0.06], [0.85, 0.15], [0.85, 0.62], [0.8, 0.66], [0, 0.66]].map(([x, y]) => new THREE.Vector2(x, y));
+  const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 96), frosted); body.castShadow = true; cream.add(body);
+  const lab = new THREE.Mesh(new THREE.CylinderGeometry(0.858, 0.858, 0.42, 128, 1, true, -Math.PI * 0.3, Math.PI * 0.6), labelMat('RICH CREAM', 'cream', '30 g'));
+  lab.position.y = 0.38; cream.add(lab);
+  const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.86, 0.86, 0.36, 96), gold); lid.position.y = 0.84; lid.castShadow = true; cream.add(lid);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.02, 96), ivory); top.position.y = 1.03; cream.add(top);
+}
+const h3 = plinth(1.15, 0.7, 2.6, 0.5); cream.position.set(2.6, h3, 0.5); products.add(cream);
+
+// floating droplets (moisture motif)
+const dropMat = new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.02, transmission: 1, thickness: 0.4, ior: 1.33, clearcoat: 1 });
+const drops = [];
+let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+for (let i = 0; i < 14; i++) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.05 + rnd() * 0.11, 32, 16), dropMat);
+  m.userData = { x: (rnd() - 0.5) * 9, y: 1 + rnd() * 4, z: (rnd() - 0.5) * 4 - 0.3, sp: 0.3 + rnd() * 0.7, ph: rnd() * 6 };
+  scene.add(m); drops.push(m);
+}
+
+const camera = new THREE.PerspectiveCamera(30, W / H, 0.1, 200);
+const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const L = THREE.MathUtils.lerp;
+// face labels toward +z (front)
+essence.rotation.y = 0.12; serum.rotation.y = 0; cream.rotation.y = -0.1;
+
+window.renderFrame = (i) => {
+  const t = i / (FRAMES - 1), e = ease(t);
+  // macro on the serum dropper -> pull back & arc to the full lineup
+  const ang = L(0.75, 0.0, e);
+  const rad = L(3.4, 11.2, e);
+  const y = L(4.4, 3.3, e);
+  camera.position.set(Math.sin(ang) * rad, y, Math.cos(ang) * rad - 0.4);
+  camera.lookAt(L(0, 0.05, e), L(3.6, 1.75, e), -0.4);
+  serum.rotation.y = L(-0.9, 0, e);
+  for (const m of drops) {
+    const d = m.userData;
+    m.position.set(d.x + Math.sin(t * 3 + d.ph) * 0.15, d.y + t * d.sp * 1.2, d.z);
+  }
+  key.position.set(L(-6, -4.5, e), 7, 5);
+  renderer.render(scene, camera);
+  return true;
+};
+window.ready = true;
+</script></body></html>
