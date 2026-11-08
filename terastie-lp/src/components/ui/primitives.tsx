@@ -12,7 +12,7 @@ export function Container({ className, children, narrow }: { className?: string;
 
 export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <p className={cn("font-serif text-sm italic tracking-[0.18em] text-gold", className)}>{children}</p>
+    <p className={cn("font-serif text-sm italic tracking-[0.18em] text-silver-deep", className)}>{children}</p>
   );
 }
 
@@ -61,8 +61,8 @@ export function ButtonLink({ variant = "solid", size = "md", className, children
         "inline-flex items-center justify-center gap-2 rounded-full border font-medium tracking-[0.14em] transition duration-300 ease-out-soft hover:-translate-y-0.5",
         size === "lg" ? "min-h-14 px-10 text-[15px]" : "min-h-12 px-7 text-sm",
         variant === "solid"
-          ? "border-ink bg-ink text-ivory hover:bg-ink-soft"
-          : "border-ink/30 bg-transparent text-ink hover:border-ink hover:bg-ink hover:text-ivory",
+          ? "border-ink bg-ink text-paper hover:bg-ink-soft"
+          : "border-ink/30 bg-transparent text-ink hover:border-ink hover:bg-ink hover:text-paper",
         className,
       )}
       {...rest}

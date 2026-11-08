@@ -50,7 +50,7 @@ export function FrameSequenceHero() {
       ctx.drawImage(img, (cw - w) / 2, y, w, h);
       const fadeTop = y + h * 0.72;
       const g = ctx.createLinearGradient(0, fadeTop, 0, y + h);
-      g.addColorStop(0, "rgba(228,216,194,0)");
+      g.addColorStop(0, "rgba(236,236,236,0)");
       g.addColorStop(1, BG);
       ctx.fillStyle = g;
       ctx.fillRect(0, fadeTop, cw, y + h - fadeTop + 1);
@@ -120,19 +120,19 @@ export function FrameSequenceHero() {
   const progress = loaded / FRAME_COUNT;
 
   return (
-    <section ref={sectionRef} id="top" aria-label="TERASTIE の紹介" className="relative h-[500vh] bg-sand">
+    <section ref={sectionRef} id="top" aria-label="TERASTIE の紹介" className="relative h-[500vh] bg-stage">
       <div className="sticky top-0 h-svh overflow-hidden">
         <canvas ref={canvasRef} aria-hidden className="absolute inset-0 h-full w-full" />
         {/* soft light veil to keep copy legible */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(120,95,65,0.18)_100%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(60,60,64,0.10)_100%)]"
         />
 
         {/* loading bar */}
         <div
           className={cn(
-            "absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-sand transition-opacity duration-700",
+            "absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-stage transition-opacity duration-700",
             progress >= 0.35 && "pointer-events-none opacity-0",
           )}
           role="status"
@@ -140,9 +140,9 @@ export function FrameSequenceHero() {
         >
           <span className="font-serif text-2xl tracking-[0.3em] text-ink">TERASTIE</span>
           <span className="h-px w-48 overflow-hidden bg-ink/15">
-            <span className="block h-full bg-gold transition-[width] duration-200" style={{ width: `${progress * 100}%` }} />
+            <span className="block h-full bg-silver transition-[width] duration-200" style={{ width: `${progress * 100}%` }} />
           </span>
-          <span className="font-mono text-xs tracking-[0.2em] text-taupe">{Math.round(progress * 100)}%</span>
+          <span className="font-mono text-xs tracking-[0.2em] text-muted">{Math.round(progress * 100)}%</span>
         </div>
 
         {heroBeats.map((b) => (
@@ -152,7 +152,7 @@ export function FrameSequenceHero() {
         <ScrollCue progress={scrollYProgress} />
 
         <div className="absolute inset-x-0 bottom-0 h-[2px] bg-ink/10" aria-hidden>
-          <motion.div className="h-full origin-left bg-gold" style={{ scaleX: scrollYProgress }} />
+          <motion.div className="h-full origin-left bg-silver" style={{ scaleX: scrollYProgress }} />
         </div>
       </div>
     </section>
@@ -196,7 +196,7 @@ function HeroBeat({ beat, progress }: { beat: Beat; progress: MotionValue<number
       <div
         className={cn(
           "md:rounded-2xl md:p-8",
-          beat.placement !== "top" && "md:bg-ivory/55 md:shadow-[0_20px_60px_-30px_rgba(60,40,20,0.35)] md:backdrop-blur-md",
+          beat.placement !== "top" && "md:bg-paper/70 md:shadow-[0_20px_60px_-30px_rgba(20,20,24,0.25)] md:backdrop-blur-md",
         )}
       >
         <Eyebrow>{beat.eyebrow}</Eyebrow>
@@ -225,9 +225,9 @@ function ScrollCue({ progress }: { progress: MotionValue<number> }) {
       aria-hidden
       className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex"
     >
-      <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-taupe">Scroll</span>
+      <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted">Scroll</span>
       <motion.span
-        className="block h-10 w-px origin-top bg-taupe"
+        className="block h-10 w-px origin-top bg-muted"
         animate={{ scaleY: [0, 1, 1], opacity: [1, 1, 0] }}
         transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
       />

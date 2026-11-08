@@ -23,7 +23,7 @@ const notoSansJp = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: `${site.name}（${site.nameJa}）｜${site.clinic} オリジナルスキンケア`,
+  title: `${site.name}（${site.nameJa}）｜${site.clinic} ドクターズコスメ`,
   description: site.description,
   openGraph: {
     title: `${site.name}（${site.nameJa}）`,
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e4d8c2",
+  themeColor: "#ececec",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

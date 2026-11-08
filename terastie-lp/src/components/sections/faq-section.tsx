@@ -11,7 +11,7 @@ export function FaqSection() {
   const baseId = useId();
 
   return (
-    <section id="faq" className="bg-cream py-28 md:py-40">
+    <section id="faq" className="bg-mist py-28 md:py-40">
       <Container narrow>
         <Reveal>
           <SectionHeading eyebrow="FAQ" title="よくあるご質問" />
@@ -34,14 +34,14 @@ export function FaqSection() {
                       className="flex w-full items-center justify-between gap-6 py-6 text-left font-serif text-[16px] tracking-[0.06em] text-ink md:text-[17px]"
                     >
                       <span className="flex gap-4">
-                        <span className="font-serif italic text-gold">Q.</span>
+                        <span className="font-serif italic text-silver">Q.</span>
                         <span>{f.q}</span>
                       </span>
                       <motion.span
                         aria-hidden
                         animate={{ rotate: isOpen ? 45 : 0 }}
                         transition={{ duration: 0.3 }}
-                        className="shrink-0 font-sans text-2xl font-light text-gold"
+                        className="shrink-0 font-sans text-2xl font-light text-silver"
                       >
                         +
                       </motion.span>

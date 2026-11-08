@@ -1,7 +1,14 @@
 import { FrameSequenceHero } from "@/components/hero/frame-sequence-hero";
 import { SiteHeader } from "@/components/layout/site-header";
 import { FaqSection } from "@/components/sections/faq-section";
-import { AboutSection, CtaSection, FeaturesSection, LineupSection, SiteFooter } from "@/components/sections/sections";
+import {
+  AboutSection,
+  CtaSection,
+  FeaturesSection,
+  LineupSection,
+  RoutineSection,
+  SiteFooter,
+} from "@/components/sections/sections";
 
 export default function Home() {
   return (
@@ -15,6 +22,7 @@ export default function Home() {
         <LineupSection />
         {/* 機能 */}
         <FeaturesSection />
+        <RoutineSection />
         {/* FAQ */}
         <FaqSection />
         {/* CTA */}

@@ -2,19 +2,19 @@
 
 /* ------------------------------------------------------------------
    Design tokens — TERASTIE
-   Warm ivory / sand base, taupe ink, champagne-gold accent.
+   Monochrome: white / light grey base, black ink, silver accent.
 ------------------------------------------------------------------- */
 @theme {
-  --color-ivory: #f8f4ed;
-  --color-cream: #f1e9dc;
-  --color-sand: #e4d8c2; /* matches the hero film background */
-  --color-greige: #cdbba1;
-  --color-taupe: #7a6550;
-  --color-ink: #2b231c;
-  --color-ink-soft: #5a4b3d;
-  --color-gold: #b08d57;
-  --color-gold-deep: #8a6b3b;
-  --color-line: rgb(43 35 28 / 0.12);
+  /* monochrome, matching the black / silver / white packaging */
+  --color-paper: #fafafa;
+  --color-mist: #f0f0f0;
+  --color-stage: #ececec; /* matches the hero film background */
+  --color-silver: #9a9ca1;
+  --color-silver-deep: #6e7075;
+  --color-muted: #77787d;
+  --color-ink: #111113;
+  --color-ink-soft: #46474b;
+  --color-line: rgb(17 17 19 / 0.12);
 
   --font-sans: var(--font-geist-sans), var(--font-noto-sans-jp), "Hiragino Sans", "Yu Gothic", sans-serif;
   --font-serif: var(--font-shippori), "Hiragino Mincho ProN", "Yu Mincho", serif;
@@ -29,7 +29,7 @@
 }
 
 html {
-  background: var(--color-ivory);
+  background: var(--color-paper);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
 }
@@ -52,12 +52,12 @@ html.lenis body {
 }
 
 ::selection {
-  background: var(--color-gold);
+  background: var(--color-ink);
   color: #fff;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-gold);
+  outline: 2px solid var(--color-silver-deep);
   outline-offset: 3px;
 }
 
