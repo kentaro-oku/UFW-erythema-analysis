@@ -70,7 +70,7 @@ export const heroBeats: Beat[] = [
     range: [0.89, 1.01],
     eyebrow: "TERASTIE",
     title: "3つの役割で考える、\n毎日のスキンケア。",
-    placement: "top",
+    placement: "right",
     cta: true,
   },
 ];

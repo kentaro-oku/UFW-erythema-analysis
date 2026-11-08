@@ -200,12 +200,12 @@ function HeroBeat({ beat, progress }: { beat: Beat; progress: MotionValue<number
         )}
       >
         <Eyebrow>{beat.eyebrow}</Eyebrow>
-        <Title className="jp-balance mt-3 font-serif text-[clamp(1.6rem,3vw,2.75rem)] leading-[1.5] tracking-[0.06em] text-ink">
+        <Title className="jp-balance mt-3 font-serif text-[clamp(1.6rem,2.8vw,2.5rem)] leading-[1.5] tracking-[0.06em] text-ink">
           <Lines text={beat.title} />
         </Title>
         {beat.body && <p className="mt-4 text-sm leading-[2] tracking-[0.08em] text-ink-soft md:text-[15px]">{beat.body}</p>}
         {beat.cta && (
-          <div className="mt-6 flex flex-wrap gap-3 md:justify-center">
+          <div className={cn("mt-6 flex flex-wrap gap-3", beat.placement === "right" ? "md:justify-end" : beat.placement === "top" && "md:justify-center")}>
             <ButtonLink href="#lineup">ラインナップを見る</ButtonLink>
             <ButtonLink href="#faq" variant="outline">
               よくある質問

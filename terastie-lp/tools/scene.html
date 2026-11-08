@@ -141,7 +141,7 @@ window.renderFrame = (i) => {
   const rad = L(3.4, 11.2, e);
   const y = L(4.4, 3.3, e);
   camera.position.set(Math.sin(ang) * rad, y, Math.cos(ang) * rad - 0.4);
-  camera.lookAt(L(0, 0.05, e), L(3.6, 1.75, e), -0.4);
+  camera.lookAt(L(0, 0.05, e), L(3.6, 2.55, e), -0.4);
   serum.rotation.y = L(-0.9, 0, e);
   for (const m of drops) {
     const d = m.userData;
